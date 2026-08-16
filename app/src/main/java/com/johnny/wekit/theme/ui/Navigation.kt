@@ -3,10 +3,8 @@ package com.johnny.wekit.theme.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -28,12 +26,9 @@ import com.johnny.wekit.theme.util.ThemeExporter
 import com.johnny.wekit.theme.viewmodel.ThemeViewModel
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    data object Theme : Screen("theme", "主题信息", Icons.Default.Info)
-    data object Colors : Screen("colors", "颜色", Icons.Default.Palette)
-    data object Strings : Screen("strings", "字符串", Icons.Default.TextFields)
-    data object Images : Screen("images", "图片", Icons.Default.Image)
+    data object Theme : Screen("theme", "主题", Icons.Default.Info)
+    data object Resources : Screen("resources", "资源", Icons.Default.Style)
     data object Export : Screen("export", "导出", Icons.Default.Download)
-    data object About : Screen("about", "关于", Icons.Default.Info)
 }
 
 @Composable
@@ -43,11 +38,8 @@ fun ThemeNavigation(viewModel: ThemeViewModel = viewModel()) {
 
     val screens = listOf(
         Screen.Theme,
-        Screen.Colors,
-        Screen.Strings,
-        Screen.Images,
-        Screen.Export,
-        Screen.About
+        Screen.Resources,
+        Screen.Export
     )
 
     Scaffold(
@@ -85,28 +77,18 @@ fun ThemeNavigation(viewModel: ThemeViewModel = viewModel()) {
                     onManifestUpdate = { viewModel.updateManifest(it) }
                 )
             }
-            composable(Screen.Colors.route) {
-                ColorsEditorScreen(
-                    colors = project.colors,
+            composable(Screen.Resources.route) {
+                ResourcesScreen(
+                    project = project,
                     onColorUpdate = { key, value -> viewModel.updateColor(key, value) },
                     onResetColors = { viewModel.resetColors() },
-                    onImportColors = { viewModel.importColors(it) }
-                )
-            }
-            composable(Screen.Strings.route) {
-                StringsEditorScreen(
-                    strings = project.strings,
+                    onImportColors = { viewModel.importColors(it) },
                     onStringUpdate = { key, value -> viewModel.updateString(key, value) },
                     onResetStrings = { viewModel.resetStrings() },
-                    onImportStrings = { viewModel.importStrings(it) }
-                )
-            }
-            composable(Screen.Images.route) {
-                ImageManagerScreen(
-                    images = project.images,
+                    onImportStrings = { viewModel.importStrings(it) },
                     onSetImage = { path, uri -> viewModel.setImage(path, uri) },
                     onClearImage = { path -> viewModel.clearImage(path) },
-                    onBatchImport = { mapping -> viewModel.batchImportImages(mapping) }
+                    onBatchImportImages = { mapping -> viewModel.batchImportImages(mapping) }
                 )
             }
             composable(Screen.Export.route) {
@@ -122,9 +104,6 @@ fun ThemeNavigation(viewModel: ThemeViewModel = viewModel()) {
                         )
                     }
                 )
-            }
-            composable(Screen.About.route) {
-                AboutScreen()
             }
         }
     }

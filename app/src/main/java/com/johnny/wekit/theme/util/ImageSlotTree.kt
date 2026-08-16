@@ -136,19 +136,4 @@ object ImageSlotTree {
     fun groupByCategory(): Map<String, List<ImageSlot>> {
         return ALL_SLOTS.groupBy { it.category }
     }
-
-    /** Get sub-path groups within a category, e.g. "home/actionbar" -> list of slots */
-    fun groupBySubPath(category: String): Map<String, List<ImageSlot>> {
-        return ALL_SLOTS
-            .filter { it.category == category }
-            .groupBy { slot ->
-                val parts = slot.path.split("/")
-                if (parts.size > 2) parts[1] else ""
-            }
-    }
-
-    /** Group slots by category */
-    fun groupByCategory(): Map<String, List<ImageSlot>> {
-        return ALL_SLOTS.groupBy { it.category }
-    }
 }
