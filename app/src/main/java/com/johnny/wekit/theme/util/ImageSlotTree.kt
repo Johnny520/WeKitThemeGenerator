@@ -71,6 +71,7 @@ object ImageSlotTree {
         add(ImageSlot("home/me/settings.png", "settings", "home"))
 
         // chat - top level
+        add(ImageSlot("chat/background.png", "background", "chat"))
         add(ImageSlot("chat/input_background.png", "input_background", "chat"))
         add(ImageSlot("chat/plus_panel_background.png", "plus_panel_background", "chat"))
         add(ImageSlot("chat/red_packet.png", "red_packet", "chat"))
@@ -84,11 +85,19 @@ object ImageSlotTree {
         add(ImageSlot("chat/long_press_menu_arrow_down.png", "long_press_menu_arrow_down", "chat"))
         add(ImageSlot("chat/long_press_menu_arrow_up.png", "long_press_menu_arrow_up", "chat"))
         add(ImageSlot("chat/long_press_menu_background.png", "long_press_menu_background", "chat"))
+        add(ImageSlot("chat/bottom_background.png", "bottom_background", "chat"))
+        add(ImageSlot("chat/bottom_emoji.png", "bottom_emoji", "chat"))
+        add(ImageSlot("chat/bottom_plus.png", "bottom_plus", "chat"))
+        add(ImageSlot("chat/bottom_send.png", "bottom_send", "chat"))
+        add(ImageSlot("chat/bottom_voice.png", "bottom_voice", "chat"))
 
         // chat/actionbar
         add(ImageSlot("chat/actionbar/background.png", "background", "chat"))
         add(ImageSlot("chat/actionbar/back.png", "back", "chat"))
         add(ImageSlot("chat/actionbar/more.png", "more", "chat"))
+        add(ImageSlot("chat/actionbar/search.png", "search", "chat"))
+        add(ImageSlot("chat/actionbar/settings.png", "settings", "chat"))
+        add(ImageSlot("chat/actionbar/unread_badge.png", "unread_badge", "chat"))
 
         // chat/bubbles
         add(ImageSlot("chat/bubbles/text_left.png", "text_left", "chat"))
@@ -96,9 +105,15 @@ object ImageSlotTree {
         add(ImageSlot("chat/bubbles/file_left.png", "file_left", "chat"))
         add(ImageSlot("chat/bubbles/file_right.png", "file_right", "chat"))
         add(ImageSlot("chat/bubbles/red_packet_left.png", "red_packet_left", "chat"))
+        add(ImageSlot("chat/bubbles/red_packet_left_received.png", "red_packet_left_received", "chat"))
         add(ImageSlot("chat/bubbles/red_packet_right.png", "red_packet_right", "chat"))
+        add(ImageSlot("chat/bubbles/red_packet_right_received.png", "red_packet_right_received", "chat"))
         add(ImageSlot("chat/bubbles/transfer_left.png", "transfer_left", "chat"))
+        add(ImageSlot("chat/bubbles/transfer_left_icon.png", "transfer_left_icon", "chat"))
+        add(ImageSlot("chat/bubbles/transfer_left_received.png", "transfer_left_received", "chat"))
         add(ImageSlot("chat/bubbles/transfer_right.png", "transfer_right", "chat"))
+        add(ImageSlot("chat/bubbles/transfer_right_icon.png", "transfer_right_icon", "chat"))
+        add(ImageSlot("chat/bubbles/transfer_right_received.png", "transfer_right_received", "chat"))
 
         // chat/emoji_tabs
         add(ImageSlot("chat/emoji_tabs/custom.png", "custom", "chat"))

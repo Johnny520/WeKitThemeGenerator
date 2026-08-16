@@ -103,12 +103,24 @@ fun ExportScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "默认保存到：${ThemeExporter.defaultSaveDirDisplay()}",
+                    "压缩包默认保存到：${ThemeExporter.defaultSaveDirDisplay()}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "生成主题包后点击「保存」，会自动存入该文件夹",
+                    "🔧 主题生效目录（解压后放这里）：",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "/storage/emulated/0/Android/data/com.tencent.mm/WeKit/themes/",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "解压 zip 后，把「主题名」文件夹整个放进上面这个目录，\n然后在 WeKit 模块里选中该主题并重启微信",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -303,7 +315,7 @@ fun ExportScreen(
 
                     // 提示：怎么用
                     Text(
-                        "📌 使用方法：\n1. 把 zip 解压到 WeKit 主题目录\n2. 重启微信即可看到效果",
+                        "📌 主题生效步骤：\n1. 解压 zip，得到「主题名」文件夹\n2. 把该文件夹放到：\n   /storage/emulated/0/Android/data/com.tencent.mm/WeKit/themes/\n3. 在 WeKit 模块选中该主题，重启微信",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
