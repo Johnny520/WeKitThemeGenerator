@@ -23,6 +23,9 @@ object ThemeExporter {
 
     private const val TAG = "ThemeExporter"
 
+    /** 主题包保存的目标文件夹名（位于 Download 目录下） */
+    const val THEME_FOLDER_NAME = "wekit主题包"
+
     /**
      * 清洗主题名，防御 Zip-Slip 路径穿越 + 非法文件名字符。
      * 规则：
@@ -107,7 +110,7 @@ object ThemeExporter {
     }
 
     /**
-     * Save the zip file to the Downloads directory.
+     * Save the zip file to the Downloads/wekit主题包/ directory.
      * @return The content URI of the saved file, or null on failure
      */
     fun saveToDownloads(context: Context, zipFile: File): Uri? {
@@ -118,12 +121,21 @@ object ThemeExporter {
         }
     }
 
+    /**
+     * 返回主题包默认保存目录的展示路径。
+     * API 29+ 相对路径为 Download/wekit主题包；legacy 为 /storage/emulated/0/Download/wekit主题包。
+     */
+    fun defaultSaveDirDisplay(): String {
+        return "Download/$THEME_FOLDER_NAME"
+    }
+
     private fun saveToDownloadsMediaStore(context: Context, zipFile: File): Uri? {
         return try {
             val fileName = zipFile.name
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, fileName)
                 put(MediaStore.Downloads.MIME_TYPE, "application/zip")
+                put(MediaStore.Downloads.RELATIVE_PATH, "Download/$THEME_FOLDER_NAME")
                 put(MediaStore.Downloads.IS_PENDING, 1)
             }
             val collection = MediaStore.Downloads.getContentUri("externalPrimary")
@@ -141,7 +153,7 @@ object ThemeExporter {
 
             uri
         } catch (e: Exception) {
-            Log.e(TAG, "保存到 Downloads (MediaStore) 失败", e)
+            Log.e(TAG, "保存到 Download/wekit主题包 (MediaStore) 失败", e)
             null
         }
     }
@@ -150,8 +162,9 @@ object ThemeExporter {
     private fun saveToDownloadsLegacy(context: Context, zipFile: File): Uri? {
         return try {
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            if (!downloadsDir.exists()) downloadsDir.mkdirs()
-            val destFile = File(downloadsDir, zipFile.name)
+            val themeDir = File(downloadsDir, THEME_FOLDER_NAME)
+            if (!themeDir.exists()) themeDir.mkdirs()
+            val destFile = File(themeDir, zipFile.name)
             FileInputStream(zipFile).use { input ->
                 FileOutputStream(destFile).use { output ->
                     input.copyTo(output)
@@ -159,7 +172,7 @@ object ThemeExporter {
             }
             Uri.fromFile(destFile)
         } catch (e: Exception) {
-            Log.e(TAG, "保存到 Downloads (legacy) 失败", e)
+            Log.e(TAG, "保存到 Download/wekit主题包 (legacy) 失败", e)
             null
         }
     }

@@ -120,25 +120,27 @@ fun ImageManagerScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top bar
+        // Top bar：标题单独一行，批量导入按钮单独一行
+        Text(
+            "图片管理",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("图片管理", style = MaterialTheme.typography.headlineMedium)
-            Row {
-                OutlinedButton(onClick = {
-                    batchImageLauncher.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
+            OutlinedButton(onClick = {
+                batchImageLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
                     )
-                }) {
-                    Text("批量导入")
-                }
+                )
+            }) {
+                Text("批量导入")
             }
         }
 

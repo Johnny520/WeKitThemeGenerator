@@ -88,6 +88,33 @@ fun ExportScreen(
             }
         }
 
+        // 默认保存路径提示
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "📂 主题包保存位置",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "默认保存到：${ThemeExporter.defaultSaveDirDisplay()}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "生成主题包后点击「保存」，会自动存入该文件夹",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         // 生成按钮
         Button(
             onClick = {
@@ -184,6 +211,22 @@ fun ExportScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // 默认保存路径提示
+                    Text(
+                        "📂 默认保存路径：${ThemeExporter.defaultSaveDirDisplay()}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "点击下方「保存」，主题包会存入该文件夹",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     // 操作按钮
                     Button(
                         onClick = {
@@ -192,7 +235,7 @@ fun ExportScreen(
                                 exportedDownloadsUri = uri
                                 Toast.makeText(
                                     context,
-                                    "已保存到 Downloads 目录",
+                                    "已保存到 ${ThemeExporter.defaultSaveDirDisplay()}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -207,12 +250,12 @@ fun ExportScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("保存到 Downloads 目录")
+                        Text("保存到 wekit主题包 文件夹")
                     }
 
                     exportedDownloadsUri?.let { uri ->
                         Text(
-                            "💾 已保存，可通过文件管理器查看：\n${uri.path}",
+                            "💾 已保存，可通过文件管理器查看：\n${ThemeExporter.defaultSaveDirDisplay()}",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 4.dp)

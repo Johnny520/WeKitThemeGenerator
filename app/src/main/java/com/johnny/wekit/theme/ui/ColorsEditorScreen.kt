@@ -19,9 +19,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -110,30 +115,51 @@ fun ColorsEditorScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top bar with actions
+        // Top bar：标题单独一行，操作按钮单独一行
+        Text(
+            "颜色编辑",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("颜色编辑", style = MaterialTheme.typography.headlineMedium)
-            Row {
-                OutlinedButton(onClick = onResetColors) {
-                    Text("重置")
+            var menuExpanded by remember { mutableStateOf(false) }
+            Box {
+                OutlinedButton(onClick = { menuExpanded = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "操作")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("操作")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(onClick = {
-                    importLauncher.launch(arrayOf("application/json"))
-                }) {
-                    Text("导入")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(onClick = {
-                    exportLauncher.launch("colors.json")
-                }) {
-                    Text("导出")
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("重置") },
+                        onClick = {
+                            menuExpanded = false
+                            onResetColors()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("导入") },
+                        onClick = {
+                            menuExpanded = false
+                            importLauncher.launch(arrayOf("application/json"))
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("导出") },
+                        onClick = {
+                            menuExpanded = false
+                            exportLauncher.launch("colors.json")
+                        }
+                    )
                 }
             }
         }

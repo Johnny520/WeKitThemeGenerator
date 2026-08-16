@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -87,28 +93,45 @@ fun StringsEditorScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Top bar
+        // Top bar：标题单独一行，操作按钮单独一行
+        Text("字符串编辑", style = MaterialTheme.typography.headlineMedium)
+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("字符串编辑", style = MaterialTheme.typography.headlineMedium)
-            Row {
-                OutlinedButton(onClick = onResetStrings) {
-                    Text("重置")
+            var menuExpanded by remember { mutableStateOf(false) }
+            Box {
+                OutlinedButton(onClick = { menuExpanded = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "操作")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("操作")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(onClick = {
-                    importLauncher.launch(arrayOf("application/json"))
-                }) {
-                    Text("导入")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(onClick = {
-                    exportLauncher.launch("strings.json")
-                }) {
-                    Text("导出")
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("重置") },
+                        onClick = {
+                            menuExpanded = false
+                            onResetStrings()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("导入") },
+                        onClick = {
+                            menuExpanded = false
+                            importLauncher.launch(arrayOf("application/json"))
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("导出") },
+                        onClick = {
+                            menuExpanded = false
+                            exportLauncher.launch("strings.json")
+                        }
+                    )
                 }
             }
         }
