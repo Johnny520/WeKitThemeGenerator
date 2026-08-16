@@ -93,11 +93,12 @@ fun ImageManagerScreen(
                 // Try to match by file name
                 val fileName = getFileName(context, uri)
                 if (fileName != null) {
-                    // Find matching slot by display name (without extension) or full path
+                    // 精确匹配文件名（去扩展名）或完整文件名（带路径最后一段），
+                    // 用 substringAfterLast 避免 endsWith 误匹配前缀（如 xxbackground.png 误匹配 background.png）
                     val nameWithoutExt = fileName.substringBeforeLast(".")
                     val matchingSlot = allSlots.find { slot ->
                         slot.displayName == nameWithoutExt ||
-                        slot.path.endsWith(fileName)
+                        slot.path.substringAfterLast("/") == fileName
                     }
                     if (matchingSlot != null) {
                         mapping[matchingSlot.path] = uri

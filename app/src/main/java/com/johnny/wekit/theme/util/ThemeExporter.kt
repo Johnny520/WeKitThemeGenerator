@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import com.johnny.wekit.theme.data.ThemeManifest
 import org.json.JSONObject
 import java.io.BufferedOutputStream
@@ -20,14 +21,38 @@ import java.util.zip.ZipOutputStream
  */
 object ThemeExporter {
 
+    private const val TAG = "ThemeExporter"
+
+    /**
+     * 清洗主题名，防御 Zip-Slip 路径穿越 + 非法文件名字符。
+     * 规则：
+     * 1. 去除路径分隔符 / 和 \
+     * 2. 去除 .. （防目录穿越）
+     * 3. 去除 Windows/Android 非法文件名字符 : * ? " < > |
+     * 4. 去除控制字符
+     * 5. 限制长度（最大 64 字符）
+     * 6. 空结果 fallback "UntitledTheme"
+     */
+    private fun sanitizeThemeName(raw: String): String {
+        val cleaned = raw
+            .replace("\\", "")
+            .replace("/", "")
+            .replace("..", "")
+            .replace(":", "")
+            .replace("*", "")
+            .replace("?", "")
+            .replace("\"", "")
+            .replace("<", "")
+            .replace(">", "")
+            .replace("|", "")
+            .replace(Regex("[\\x00-\\x1f]"), "")
+            .trim()
+        val limited = if (cleaned.length > 64) cleaned.substring(0, 64) else cleaned
+        return limited.ifBlank { "UntitledTheme" }
+    }
+
     /**
      * Export the theme project to a zip file.
-     * @param context Android context
-     * @param manifest Theme manifest
-     * @param colors Color map
-     * @param strings String map
-     * @param images Image URI map (path -> content URI)
-     * @return The generated zip file
      */
     fun export(
         context: Context,
@@ -36,7 +61,7 @@ object ThemeExporter {
         strings: Map<String, String>,
         images: Map<String, Uri>
     ): File {
-        val themeName = manifest.name.ifBlank { "UntitledTheme" }
+        val themeName = sanitizeThemeName(manifest.name)
         val zipFile = File(context.cacheDir, "$themeName.wekit.zip")
 
         ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zos ->
@@ -71,8 +96,9 @@ object ThemeExporter {
                         input.copyTo(zos)
                         zos.closeEntry()
                     }
-                } catch (_: Exception) {
-                    // Skip images that can't be read
+                } catch (e: Exception) {
+                    // 单张图片读取失败只跳过，不中断整体导出；记录日志便于排查
+                    Log.w(TAG, "导出图片失败，已跳过: $path", e)
                 }
             }
         }
@@ -81,8 +107,7 @@ object ThemeExporter {
     }
 
     /**
-     * Save the zip file to the Downloads directory using MediaStore (API 29+)
-     * or legacy file copy (API 26-28).
+     * Save the zip file to the Downloads directory.
      * @return The content URI of the saved file, or null on failure
      */
     fun saveToDownloads(context: Context, zipFile: File): Uri? {
@@ -93,9 +118,6 @@ object ThemeExporter {
         }
     }
 
-    /**
-     * API 29+: Use MediaStore to save to Downloads.
-     */
     private fun saveToDownloadsMediaStore(context: Context, zipFile: File): Uri? {
         return try {
             val fileName = zipFile.name
@@ -118,14 +140,12 @@ object ThemeExporter {
             context.contentResolver.update(uri, values, null, null)
 
             uri
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "保存到 Downloads (MediaStore) 失败", e)
             null
         }
     }
 
-    /**
-     * API 26-28: Use legacy Environment.getExternalStoragePublicDirectory.
-     */
     @Suppress("DEPRECATION")
     private fun saveToDownloadsLegacy(context: Context, zipFile: File): Uri? {
         return try {
@@ -138,7 +158,8 @@ object ThemeExporter {
                 }
             }
             Uri.fromFile(destFile)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "保存到 Downloads (legacy) 失败", e)
             null
         }
     }
