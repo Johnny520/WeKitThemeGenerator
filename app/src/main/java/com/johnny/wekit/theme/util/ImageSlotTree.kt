@@ -146,4 +146,9 @@ object ImageSlotTree {
                 if (parts.size > 2) parts[1] else ""
             }
     }
+
+    /** Group slots by category */
+    fun groupByCategory(): Map<String, List<ImageSlot>> {
+        return ALL_SLOTS.groupBy { it.category }
+    }
 }
