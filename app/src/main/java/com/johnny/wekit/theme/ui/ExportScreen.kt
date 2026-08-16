@@ -340,12 +340,15 @@ private fun SummaryRow(label: String, value: String) {
 }
 
 /**
- * 格式化文件大小：小于 1KB 显示字节数，避免整数除法导致显示 0 KB。
+ * 格式化文件大小：B / KB / MB / GB 分级显示，避免大文件显示成 5120.0 KB 这种不友好值。
  */
 private fun formatFileSize(bytes: Long): String {
-    return if (bytes < 1024) {
-        "$bytes B"
-    } else {
-        String.format("%.1f KB", bytes / 1024.0)
-    }
+    if (bytes < 0) return "0 B"
+    if (bytes < 1024) return "$bytes B"
+    val kb = bytes / 1024.0
+    if (kb < 1024) return String.format("%.1f KB", kb)
+    val mb = kb / 1024.0
+    if (mb < 1024) return String.format("%.1f MB", mb)
+    val gb = mb / 1024.0
+    return String.format("%.2f GB", gb)
 }

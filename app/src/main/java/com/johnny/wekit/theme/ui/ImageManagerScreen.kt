@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -81,20 +82,19 @@ fun ImageManagerScreen(
         }
     }
 
-    // Batch import: pick multiple images
+    // Batch import: pick multiple image files (by file name, from file manager)
     val batchImageLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia()
+        ActivityResultContracts.OpenMultipleDocuments()
     ) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
             val mapping = mutableMapOf<String, Uri>()
             val allSlots = ImageSlotTree.ALL_SLOTS
+            var matched = 0
+            var unmatched = 0
 
             uris.forEach { uri ->
-                // Try to match by file name
                 val fileName = getFileName(context, uri)
                 if (fileName != null) {
-                    // 精确匹配文件名（去扩展名）或完整文件名（带路径最后一段），
-                    // 用 substringAfterLast 避免 endsWith 误匹配前缀（如 xxbackground.png 误匹配 background.png）
                     val nameWithoutExt = fileName.substringBeforeLast(".")
                     val matchingSlot = allSlots.find { slot ->
                         slot.displayName == nameWithoutExt ||
@@ -102,11 +102,25 @@ fun ImageManagerScreen(
                     }
                     if (matchingSlot != null) {
                         mapping[matchingSlot.path] = uri
+                        matched++
+                    } else {
+                        unmatched++
                     }
+                } else {
+                    unmatched++
                 }
             }
 
             onBatchImport(mapping)
+            Toast.makeText(
+                context,
+                if (unmatched == 0) {
+                    "成功导入 $matched 张图片"
+                } else {
+                    "已导入 $matched 张，$unmatched 张未匹配（文件名需与图片路径一致）"
+                },
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -134,11 +148,7 @@ fun ImageManagerScreen(
             horizontalArrangement = Arrangement.End
         ) {
             OutlinedButton(onClick = {
-                batchImageLauncher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly
-                    )
-                )
+                batchImageLauncher.launch(arrayOf("image/*"))
             }) {
                 Text("批量导入")
             }
@@ -354,15 +364,20 @@ private fun ThumbnailImage(
 }
 
 private fun getFileName(context: Context, uri: Uri): String? {
-    return try {
+    // 优先从 content resolver 查 DISPLAY_NAME，失败则降级用 Uri 最后一段路径
+    val name = try {
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         cursor?.use {
             if (it.moveToFirst()) {
                 val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 if (nameIndex >= 0) it.getString(nameIndex) else null
-            } else null
+            } else {
+                null
+            }
         }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        android.util.Log.w("ImageManagerScreen", "查询文件名失败，降级用 lastPathSegment", e)
         null
     }
+    return name ?: uri.lastPathSegment
 }
