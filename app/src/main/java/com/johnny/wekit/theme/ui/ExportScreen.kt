@@ -57,7 +57,7 @@ fun ExportScreen(
 ) {
     val context = LocalContext.current
     var exportedFile by remember { mutableStateOf<File?>(null) }
-    var exportedDownloadsUri by remember { mutableStateOf<Uri?>(null) }
+    var exportedSaveResult by remember { mutableStateOf<ThemeExporter.SaveResult?>(null) }
     var isExporting by remember { mutableStateOf(false) }
 
     Column(
@@ -119,7 +119,7 @@ fun ExportScreen(
         Button(
             onClick = {
                 isExporting = true
-                exportedDownloadsUri = null
+                exportedSaveResult = null
                 try {
                     val file = onExport(context)
                     exportedFile = file
@@ -180,7 +180,7 @@ fun ExportScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "文件大小: ${file.length() / 1024} KB",
+                                "文件大小: ${formatFileSize(file.length())}",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -230,12 +230,12 @@ fun ExportScreen(
                     // 操作按钮
                     Button(
                         onClick = {
-                            val uri = ThemeExporter.saveToDownloads(context, file)
-                            if (uri != null) {
-                                exportedDownloadsUri = uri
+                            val result = ThemeExporter.saveToDownloads(context, file)
+                            if (result != null) {
+                                exportedSaveResult = result
                                 Toast.makeText(
                                     context,
-                                    "已保存到 ${ThemeExporter.defaultSaveDirDisplay()}",
+                                    "已保存到 ${result.dirDisplay}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -253,9 +253,9 @@ fun ExportScreen(
                         Text("保存到 wekit主题包 文件夹")
                     }
 
-                    exportedDownloadsUri?.let { uri ->
+                    exportedSaveResult?.let { result ->
                         Text(
-                            "💾 已保存，可通过文件管理器查看：\n${ThemeExporter.defaultSaveDirDisplay()}",
+                            "💾 已保存到：${result.dirDisplay}",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 4.dp)
@@ -324,5 +324,16 @@ private fun SummaryRow(label: String, value: String) {
     ) {
         Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, fontWeight = FontWeight.Medium)
+    }
+}
+
+/**
+ * 格式化文件大小：小于 1KB 显示字节数，避免整数除法导致显示 0 KB。
+ */
+private fun formatFileSize(bytes: Long): String {
+    return if (bytes < 1024) {
+        "$bytes B"
+    } else {
+        String.format("%.1f KB", bytes / 1024.0)
     }
 }

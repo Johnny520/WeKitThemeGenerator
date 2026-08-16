@@ -110,20 +110,48 @@ object ThemeExporter {
     }
 
     /**
-     * Save the zip file to the Downloads/wekit主题包/ directory.
-     * @return The content URI of the saved file, or null on failure
+     * 保存结果：包含实际保存的 uri 和展示用目录路径。
      */
-    fun saveToDownloads(context: Context, zipFile: File): Uri? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    data class SaveResult(
+        val uri: Uri,
+        val dirDisplay: String
+    )
+
+    /**
+     * Save the zip file to Download/wekit主题包/ 目录。
+     * 保存策略（多级降级）：
+     * 1. API 29+：MediaStore（标准 Downloads 目录，无需权限）
+     * 2. API 26-28：legacy 公共 Download 目录（需 WRITE_EXTERNAL_STORAGE 权限）
+     * 3. 上述失败 → 应用专属外部目录 getExternalFilesDir（无需权限，必然可写）
+     * @return 保存结果（含实际保存目录），失败返回 null
+     */
+    fun saveToDownloads(context: Context, zipFile: File): SaveResult? {
+        val publicDir = "Download/$THEME_FOLDER_NAME"
+
+        // 第一优先级：按系统版本选择公共 Download 目录写入方式
+        val publicUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             saveToDownloadsMediaStore(context, zipFile)
         } else {
             saveToDownloadsLegacy(context, zipFile)
         }
+        if (publicUri != null) {
+            return SaveResult(publicUri, publicDir)
+        }
+
+        // 降级：应用专属外部目录（无需权限，必然可写）
+        val appDirUri = saveToAppExternalDir(context, zipFile)
+        if (appDirUri != null) {
+            return SaveResult(
+                appDirUri,
+                "Android/data/${context.packageName}/files/Download/$THEME_FOLDER_NAME"
+            )
+        }
+
+        return null
     }
 
     /**
      * 返回主题包默认保存目录的展示路径。
-     * API 29+ 相对路径为 Download/wekit主题包；legacy 为 /storage/emulated/0/Download/wekit主题包。
      */
     fun defaultSaveDirDisplay(): String {
         return "Download/$THEME_FOLDER_NAME"
@@ -138,13 +166,18 @@ object ThemeExporter {
                 put(MediaStore.Downloads.RELATIVE_PATH, "Download/$THEME_FOLDER_NAME")
                 put(MediaStore.Downloads.IS_PENDING, 1)
             }
-            val collection = MediaStore.Downloads.getContentUri("externalPrimary")
-            val uri = context.contentResolver.insert(collection, values) ?: return null
+            // 用标准 EXTERNAL_CONTENT_URI，避免 getContentUri("externalPrimary") 在部分 ROM 上失败
+            val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: return null
 
             context.contentResolver.openOutputStream(uri)?.use { output ->
                 FileInputStream(zipFile).use { input ->
                     input.copyTo(output)
                 }
+            } ?: run {
+                // 无法打开输出流，回滚插入的记录
+                context.contentResolver.delete(uri, null, null)
+                return null
             }
 
             values.clear()
@@ -153,7 +186,30 @@ object ThemeExporter {
 
             uri
         } catch (e: Exception) {
-            Log.e(TAG, "保存到 Download/wekit主题包 (MediaStore) 失败", e)
+            Log.e(TAG, "保存到 Download/wekit主题包 (MediaStore) 失败，将降级", e)
+            null
+        }
+    }
+
+    /**
+     * 降级方案：保存到应用专属外部目录（无需任何权限）。
+     * 路径：Android/data/<package>/files/Download/wekit主题包/
+     */
+    private fun saveToAppExternalDir(context: Context, zipFile: File): Uri? {
+        return try {
+            val baseDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                ?: context.filesDir
+            val themeDir = File(baseDir, THEME_FOLDER_NAME)
+            if (!themeDir.exists()) themeDir.mkdirs()
+            val destFile = File(themeDir, zipFile.name)
+            FileInputStream(zipFile).use { input ->
+                FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Uri.fromFile(destFile)
+        } catch (e: Exception) {
+            Log.e(TAG, "保存到应用专属目录失败", e)
             null
         }
     }
