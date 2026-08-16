@@ -77,17 +77,25 @@ object ThemeExporter {
             }
             addTextEntry(zos, "$themeName/manifest.json", manifestJson.toString(2))
 
-            // colors.json
+            // colors.json —— 只导出用户实际修改过的颜色。
+            // 默认值 "000000"（黑色）不写入：WeKit 引擎对缺失的 key 会回退到微信原生颜色，
+            // 若把 37 个 key 全写成黑色，会导致微信所有文字被强制变黑（"主题所有颜色默认黑色" bug）。
             val colorsJson = JSONObject()
             colors.forEach { (key, value) ->
-                colorsJson.put(key, value)
+                val clean = value.trim().removePrefix("#")
+                if (clean.isNotEmpty() && clean != "000000" && clean != "FF000000") {
+                    colorsJson.put(key, value)
+                }
             }
             addTextEntry(zos, "$themeName/colors.json", colorsJson.toString(2))
 
-            // strings.json
+            // strings.json —— 只导出非空字符串。
+            // 空字符串（如 chat.input.hint 默认空）不写入，避免清空微信输入框提示文字。
             val stringsJson = JSONObject()
             strings.forEach { (key, value) ->
-                stringsJson.put(key, value)
+                if (value.isNotEmpty()) {
+                    stringsJson.put(key, value)
+                }
             }
             addTextEntry(zos, "$themeName/strings.json", stringsJson.toString(2))
 
